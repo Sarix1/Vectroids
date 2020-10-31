@@ -4,8 +4,8 @@
 #include <string.h>
 #include <math.h>
 
-#define degToRad(angleInDegrees) ((angleInDegrees) * M_PI / 180.0)
-#define radToDeg(angleInRadians) ((angleInRadians) * 180.0 / M_PI)
+#define degToRad(degrees) ((degrees) * M_PI / 180.0)
+#define radToDeg(radians) ((radians) * 180.0 / M_PI)
 
 // Graphics constants
 SDL_Renderer* drawTarget;
@@ -22,100 +22,115 @@ enum inputDirEnum
 };
 
 uint8_t inputDir[MAX_DIRS] = {0,0,0,0};
-float turnSpeed = 2, accSpeed = 0.01, maxVel = 2;
+#define turnSpeed           2.0
+#define acceleration        0.03
+#define maxVelocity         5.0
+#define maxVelocitySquared  maxVelocity * maxVelocity
 
 // Random color
-uint8_t* randomColor()
+void randomColor(uint8_t color[])
 {
-    uint8_t color[4];
     for (int i = 0; i < 4; i++)
         color[i] = rand() % 255;
-
-    return color;
 }
 
-// Point
-#define maxPoints 1000
-struct Point* PointArray;
-int pointCount = 0;
+// Vector2
+#define maxVector2 1000
+struct Vector2* Vector2Array;
+int vector2Count = 0;
 
-struct Point
+struct Vector2
 {
     float x, y;
 };
 
-struct Point* makePoint(float x, float y)
+struct Vector2* makeVector2(float x, float y)
 {
-    if (pointCount < maxPoints)
+    if (vector2Count < maxVector2)
     {
-        PointArray[pointCount] = (struct Point){.x = x, .y = y};
+        Vector2Array[vector2Count] = (struct Vector2){.x = x, .y = y};
 
-        return &(PointArray[pointCount++]);
+        return &(Vector2Array[vector2Count++]);
     }
 
     else
     {
-        printf("maxPoints exceeded");
+        printf("maxVector2 exceeded");
 
         return NULL;
     }
 }
-
-struct Point addPoints(struct Point a, struct Point b)
+struct Vector2 add2Vector2(struct Vector2 a, struct Vector2 b)
 {
-    return (struct Point){a.x+b.x, a.y+b.y};
+    return (struct Vector2){a.x+b.x, a.y+b.y};
 }
 
-struct Point rotateVector(const struct Point* p, float angle)
+struct Vector2 scaleVector2(struct Vector2 p, float scale)
 {
-    struct Point rotatedPoint = *p;
+    return (struct Vector2){p.x*scale, p.y*scale};
+}
+
+struct Vector2 add3Vector2(struct Vector2 a, struct Vector2 b, struct Vector2 c)
+{
+    return (struct Vector2){a.x+b.x+c.x, a.y+b.y+c.y};
+}
+
+struct Vector2 rotateVector2(const struct Vector2* v, float angle)
+{
+    struct Vector2 rotatedVector = *v;
     angle = degToRad(angle);
-    rotatedPoint.x = p->x*cos(angle) - p->y*sin(angle);
-    rotatedPoint.y = p->x*sin(angle) + p->y*cos(angle);
+    rotatedVector.x = v->x*cos(angle) - v->y*sin(angle);
+    rotatedVector.y = v->x*sin(angle) + v->y*cos(angle);
 
-    return rotatedPoint;
+    return rotatedVector;
 }
 
-struct Point movePoint(struct Point p, float angle, float magnitude)
+struct Vector2 moveVector2(struct Vector2 v, float angle, float magnitude)
 {
     angle = degToRad(angle);
-    p.x += magnitude*cos(angle);
-    p.y += magnitude*sin(angle);
+    v.x += magnitude*cos(angle);
+    v.y += magnitude*sin(angle);
 
-    return p;
+    return v;
 }
+
+struct Vector2 newVector2(float length, float angle)
+{
+    return rotateVector2(&(struct Vector2){length, 0}, angle);
+}
+
 
 float randomFloat(float min, float max)
 {
-    return ((float)rand()/(float)(RAND_MAX)) * (min+max) - min;
+    return min + ((float)rand() / (float)RAND_MAX) * (max - min);
 }
 
-struct Point randomPoint()
+struct Vector2 randomVector2(float min, float max)
 {
-    struct Point p;
-    p.x = randomFloat(0, screenWidth);
-    p.y = randomFloat(0, screenHeight);
+    struct Vector2 v = {randomFloat(min, max), 0};
+    v = rotateVector2(&v, randomFloat(0, 360));
 
-    return p;
+    return v;
 }
 
-struct Point randomVector(float min, float max)
+struct Vector2 randomVector2Box(float x, float y)
 {
-    struct Point p = {0, randomFloat(min, max)};
-    p = rotateVector(&p, randomFloat(0, 360));
+    struct Vector2 v;
+    v.x = randomFloat(0, x);
+    v.y = randomFloat(0, y);
 
-    return p;
+    return v;
 }
 
-void changeVelocity(struct Point* velocity, struct Point vector)
+void changeVelocity(struct Vector2* velocity, struct Vector2 vector)
 {
-    *velocity = addPoints(*velocity, vector);
+    *velocity = add2Vector2(*velocity, vector);
 }
 
 // Important points
-struct Point zero = {0,0};
-struct Point world = {0,0};
-struct Point center = {screenWidth/2, screenHeight/2};
+struct Vector2 zero = {0,0};
+struct Vector2 world = {0,0};
+struct Vector2 center = {screenWidth/2, screenHeight/2};
 
 // Particle
 #define maxParticles 1000
@@ -124,29 +139,60 @@ int particleCount = 0;
 
 struct Particle
 {
-    struct Point origin;
-    struct Point velocity;
+    struct Vector2 origin;
+    struct Vector2 velocity;
     uint8_t color1[4];
     uint8_t color2[4];
     unsigned life;
     unsigned lifeLeft;
 };
 
-struct Point* makeParticle(struct Point origin_, struct Point velocity_, uint8_t color1_[], uint8_t color2_[], unsigned life_)
+struct Particle* makeParticle(struct Vector2 origin_, struct Vector2 velocity_, uint8_t color1_[], uint8_t color2_[], unsigned life_)
 {
     if (particleCount >= maxParticles)
         particleCount = 0;
 
     struct Particle* newParticle = &(ParticleArray[particleCount]);
-    *newParticle = (struct Particle){.origin = origin_,
-                                   .velocity = velocity_,
-                                   .life = life_,
-                                   .lifeLeft = life_};
+    *newParticle = (struct Particle){.origin    = origin_,
+                                     .velocity  = velocity_,
+                                     .life      = life_,
+                                     .lifeLeft  = life_};
 
     memcpy(newParticle->color1, color1_, 4 * sizeof(uint8_t));
     memcpy(newParticle->color2, color2_, 4 * sizeof(uint8_t));
 
     return &(ParticleArray[particleCount++]);
+}
+
+// Projectile
+#define maxProjectiles 1000
+struct Projectile* ProjectileArray;
+int projectileCount = 0;
+
+struct Projectile
+{
+    struct Vector2 origin;
+    struct Vector2 velocity;
+    float delta;
+    unsigned range;
+    int damage;
+    struct Polygon* shape;
+};
+
+struct Projectile* makeProjectile(struct Vector2 origin_, struct Vector2 velocity_, float delta_, unsigned range_, int damage_, struct Polygon* shape_)
+{
+    if (projectileCount >= maxProjectiles)
+        projectileCount = 0;
+
+    struct Projectile* newProjectile = &(ProjectileArray[projectileCount]);
+    *newProjectile = (struct Projectile){.origin    = origin_,
+                                         .velocity  = velocity_,
+                                         .delta     = delta_,
+                                         .range     = range_,
+                                         .damage    = damage_,
+                                         .shape     = shape_};
+
+    return &(ProjectileArray[projectileCount++]);
 }
 
 // Polygon
@@ -156,37 +202,37 @@ int polygonCount = 0;
 
 struct Polygon
 {
-    struct Point origin;
+    struct Vector2 origin;
     float angle;
     float angVelocity;
 
-    struct Point* parentOrigin;
+    struct Vector2* parentOrigin;
     float* parentAngle;
 
-    unsigned num_points;
-    struct Point** points;
+    unsigned numPoints;
+    struct Vector2** points;
 
     uint8_t color[4];
 };
 
-struct Polygon* makePolygon(struct Point origin_, float angle_, float angVelocity_,
-                            struct Point* parentOrigin_, float* parentAngle_,
-                            unsigned num_points_, struct Point* points_, uint8_t color_[])
+struct Polygon* makePolygon(struct Vector2 origin_, float angle_, float angVelocity_,
+                            struct Vector2* parentOrigin_, float* parentAngle_,
+                            unsigned numPoints_, struct Vector2* points_, uint8_t color_[])
 {
     if (polygonCount < maxPolygons)
     {
         struct Polygon* newPolygon = &(PolygonArray[polygonCount]);
-        *newPolygon = (struct Polygon){.origin = origin_,
-                                       .angle = angle_,
-                                       .angVelocity = angVelocity_,
-                                       .parentOrigin = parentOrigin_,
-                                       .parentAngle = parentAngle_,
-                                       .num_points = num_points_};
+        *newPolygon = (struct Polygon){.origin          = origin_,
+                                       .angle           = angle_,
+                                       .angVelocity     = angVelocity_,
+                                       .parentOrigin    = parentOrigin_,
+                                       .parentAngle     = parentAngle_,
+                                       .numPoints       = numPoints_};
 
-        newPolygon->points = malloc(sizeof(struct Point*) * num_points_);
+        newPolygon->points = malloc(sizeof(struct Vector2*) * numPoints_);
         memcpy(newPolygon->color, color_, 4 * sizeof(uint8_t));
 
-        for (int i = 0; i < num_points_; i++)
+        for (int i = 0; i < numPoints_; i++)
             newPolygon->points[i] = &(points_[i]);
 
         return &(PolygonArray[polygonCount++]);
@@ -207,24 +253,25 @@ int baseObjectCount = 0;
 
 struct BaseObject
 {
-    struct Point origin;
-    struct Point velocity;
+    struct Vector2 origin;
+    struct Vector2 velocity;
+    struct Vector2 moveVector;
     float angle;
     float angVelocity;
     struct Polygon* shape;
 };
 
-struct BaseObject* makeBaseObject(struct Point origin_, struct Point velocity_,
+struct BaseObject* makeBaseObject(struct Vector2 origin_, struct Vector2 velocity_,
                                   float angle_, float angVelocity_, struct Polygon* shape_)
 {
     if (baseObjectCount < maxBaseObjects)
     {
         struct BaseObject* newBaseObject = &(BaseObjectArray[baseObjectCount]);
-        *newBaseObject = (struct BaseObject){.origin = origin_,
-                                             .velocity = velocity_,
-                                             .angle = angle_,
-                                             .angVelocity = angVelocity_,
-                                             .shape = shape_};
+        *newBaseObject = (struct BaseObject){.origin        = origin_,
+                                             .velocity      = velocity_,
+                                             .angle         = angle_,
+                                             .angVelocity   = angVelocity_,
+                                             .shape         = shape_};
 
         return &(BaseObjectArray[baseObjectCount++]);
     }
@@ -237,21 +284,24 @@ struct BaseObject* makeBaseObject(struct Point origin_, struct Point velocity_,
     }
 }
 
+// Important BaseObjects globals
+struct BaseObject* Player;
+
 void drawPolygon(struct Polygon* polygon, SDL_Renderer* renderer)
 {
     int i;
 
     // Rotate the points
-    struct Point* rotatedPoints = malloc(sizeof(struct Point) * polygon->num_points);
+    struct Vector2* rotatedPoints = malloc(sizeof(struct Vector2) * polygon->numPoints);
 
-    for (i = 0; i < polygon->num_points; i++)
-        rotatedPoints[i] = rotateVector(polygon->points[i], polygon->angle + *(polygon->parentAngle));
+    for (i = 0; i < polygon->numPoints; i++)
+        rotatedPoints[i] = rotateVector2(polygon->points[i], polygon->angle + *(polygon->parentAngle));
 
     // Set the color
     SDL_SetRenderDrawColor(renderer, polygon->color[0], polygon->color[1], polygon->color[2], polygon->color[3]);
 
     // Draw a line between each point
-    for (i = 0; i < polygon->num_points-1; i++)
+    for (i = 0; i < polygon->numPoints-1; i++)
     {
         SDL_RenderDrawLine(renderer,
             (polygon->parentOrigin->x + polygon->origin.x + rotatedPoints[i].x),
@@ -260,22 +310,25 @@ void drawPolygon(struct Polygon* polygon, SDL_Renderer* renderer)
             (polygon->parentOrigin->y + polygon->origin.y + rotatedPoints[i+1].y) );
     }
 
-    SDL_RenderDrawLine(renderer,
-        (polygon->parentOrigin->x + polygon->origin.x + rotatedPoints[i].x),
-        (polygon->parentOrigin->y + polygon->origin.y + rotatedPoints[i].y),
-        (polygon->parentOrigin->x + polygon->origin.x + rotatedPoints[0].x),
-        (polygon->parentOrigin->y + polygon->origin.y + rotatedPoints[0].y) );
+    if (polygon->numPoints > 2)
+    {
+        SDL_RenderDrawLine(renderer,
+            (polygon->parentOrigin->x + polygon->origin.x + rotatedPoints[i].x),
+            (polygon->parentOrigin->y + polygon->origin.y + rotatedPoints[i].y),
+            (polygon->parentOrigin->x + polygon->origin.x + rotatedPoints[0].x),
+            (polygon->parentOrigin->y + polygon->origin.y + rotatedPoints[0].y) );
+    }
 
     free(rotatedPoints);
 }
 
-struct BaseObject* spawnShip(struct Point location, uint8_t color[])
+struct BaseObject* spawnShip(struct Vector2 location, uint8_t color[])
 {
-    struct Point* shipPoints =
-    makePoint(12,0);
-    makePoint(-8,7);
-    makePoint(-4,0);
-    makePoint(-8,-7);
+    struct Vector2* shipPoints =
+    makeVector2(12,0);
+    makeVector2(-8,7);
+    makeVector2(-4,0);
+    makeVector2(-8,-7);
     struct Polygon* shipPolygon = makePolygon(zero, 0, 0, NULL, NULL, 4, shipPoints, color);
     struct BaseObject* shipObject = makeBaseObject(location, zero, 0, 0, shipPolygon);
     shipPolygon->parentOrigin = &(shipObject->origin);
@@ -284,15 +337,19 @@ struct BaseObject* spawnShip(struct Point location, uint8_t color[])
     return shipObject;
 }
 
-struct BaseObject* spawnAsteroid(struct Point location, float scale, uint8_t color[])
+struct BaseObject* spawnAsteroid(struct Vector2 location, float scale, uint8_t color[])
 {
-    struct Point* asteroidPoints =
-    makePoint(15*scale, 15*scale);
-    makePoint(15*scale, -15*scale);
-    makePoint(-15*scale, -15*scale);
-    makePoint(-15*scale, 15*scale);
-    struct Polygon* asteroidPolygon = makePolygon(zero, 0, randomFloat(-maxVel, maxVel), NULL, NULL, 4, asteroidPoints, color);
-    struct BaseObject* asteroidObject = makeBaseObject(location, randomVector(0.1, 1.5), 0, 0, asteroidPolygon);
+    #define asteroidMinVel 0.1
+    #define asteroidMaxVel 1.5
+    #define asteroidMaxAngVel 5.0
+    struct Vector2* asteroidVectors =
+    makeVector2(15*scale, 15*scale);
+    makeVector2(15*scale, -15*scale);
+    makeVector2(-15*scale, -15*scale);
+    makeVector2(-15*scale, 15*scale);
+    float randomAngVel = randomFloat(-asteroidMaxAngVel, asteroidMaxAngVel);
+    struct Polygon* asteroidPolygon = makePolygon(zero, 0, randomAngVel, NULL, NULL, 4, asteroidVectors, color);
+    struct BaseObject* asteroidObject = makeBaseObject(location, randomVector2(asteroidMinVel, asteroidMaxVel), 0, 0, asteroidPolygon);
     asteroidPolygon->parentOrigin = &(asteroidObject->origin);
     asteroidPolygon->parentAngle = &(asteroidObject->angle);
 
@@ -350,26 +407,59 @@ int doEvents(SDL_Window* window)
     return done;
 }
 
-void doPhysics(struct BaseObject* player)
+void spawnFlame(struct Vector2 origin, struct Vector2 moveVector, float scale, float random, unsigned life)
+{
+    moveVector = scaleVector2(moveVector, scale);
+    struct Vector2 particleVelocity = add2Vector2(moveVector, randomVector2(0, random));
+    #define RGB_RED     (uint8_t[]){255,0,0,0}
+    #define RGB_YELLOW  (uint8_t[]){255,255,0,0}
+    makeParticle(origin, particleVelocity, RGB_YELLOW, RGB_RED, life);
+}
+
+void spawnExplosion(struct Vector2 origin, struct Vector2 moveVector, unsigned magnitude)
+{
+    struct Vector2 particleVelocity;
+
+    for (int i; i < magnitude; i++)
+    {
+        particleVelocity = add2Vector2(moveVector, randomVector2(magnitude/100.0, magnitude/50.0));
+        makeParticle(origin, particleVelocity, RGB_YELLOW, RGB_RED, rand() % magnitude);
+    }
+}
+
+float getVector2Angle(struct Vector2 v)
+{
+    return radToDeg(atan2(v.y, v.x));
+}
+
+float getVector2Length(struct Vector2 v)
+{
+    return sqrt(pow(v.x, 2) + pow(v.y, 2));
+}
+
+void doPhysics(struct BaseObject* player_)
 {
     // Only player
-    struct Point moveVector = {0, 0};
-    moveVector = movePoint(moveVector, player->angle, accSpeed);
-
     if (inputDir[UP])
-    {
-        changeVelocity(&(player->velocity), moveVector);
-
-        struct Point particleVelocity = addPoints((struct Point){moveVector.x *= -100, moveVector.y *= -100}, randomVector(0, 0.5));
-        particleVelocity = addPoints((struct Point){player->velocity.x/2, player->velocity.y/2}, particleVelocity);
-        makeParticle(player->origin, particleVelocity, (uint8_t[]){255,255,0,0}, (uint8_t[]){255,0,0,0}, 50);
-    }
+        changeVelocity(&(player_->velocity), player_->moveVector);
     if (inputDir[DOWN])
-        changeVelocity(&(player->velocity), (struct Point){moveVector.x *= -1, moveVector.y *= -1});
+        spawnExplosion(player_->origin, scaleVector2(player_->velocity, 0.5), 50);
     if (inputDir[LEFT])
-        player->angle -= turnSpeed;
+        player_->angle -= turnSpeed;
     if (inputDir[RIGHT])
-        player->angle += turnSpeed;
+        player_->angle += turnSpeed;
+    player_->moveVector = moveVector2(zero, player_->angle, acceleration);
+
+    // Limit player velocity to max
+    float excessVelocitySquared = pow(player_->velocity.x, 2) + pow(player_->velocity.y, 2) - maxVelocitySquared;
+    if (excessVelocitySquared > 0)
+    {
+        float excessVelocity = sqrt(excessVelocitySquared);
+        printf("excessVelocity: %f\n", excessVelocity);
+
+        struct Vector2 cancelVector = newVector2(-excessVelocity, getVector2Angle(player_->velocity));
+        player_->velocity = add2Vector2(player_->velocity, cancelVector);
+    }
 
     // All objects
     for (int i = 0; i < maxBaseObjects; i++)
@@ -398,6 +488,31 @@ void doRender(SDL_Renderer* renderer)
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
 
+    if (inputDir[UP])
+    {
+        #define exhaustVelocity             100
+        #define exhaustVelocityModifier     5
+        #define exhaustInheritedVelocity    0.9
+        #define exhaustDiffusion            0.5
+        #define exhaustLife                 50
+        #define exhaustLongitudinal        -10
+        #define exhaustLateral              4
+
+        if (!inputDir[RIGHT] || (inputDir[LEFT] && inputDir[RIGHT]))
+        {
+            spawnFlame(add2Vector2(Player->origin, rotateVector2(&(struct Vector2){exhaustLongitudinal, exhaustLateral}, Player->angle)),
+                       add2Vector2(scaleVector2(Player->moveVector, -exhaustVelocity/exhaustVelocityModifier), scaleVector2(Player->velocity, exhaustInheritedVelocity)),
+                       1, exhaustDiffusion, exhaustLife);
+        }
+
+        if (!inputDir[LEFT] || (inputDir[LEFT] && inputDir[RIGHT]))
+        {
+            spawnFlame(add2Vector2(Player->origin, rotateVector2(&(struct Vector2){exhaustLongitudinal, -exhaustLateral}, Player->angle)),
+                       add2Vector2(scaleVector2(Player->moveVector, -exhaustVelocity/exhaustVelocityModifier), scaleVector2(Player->velocity, exhaustInheritedVelocity)),
+                       1, exhaustDiffusion, exhaustLife);
+        }
+    }
+
     for (i = 0; i < maxParticles; i++)
     {
         struct Particle* p = &(ParticleArray[i]);
@@ -405,14 +520,12 @@ void doRender(SDL_Renderer* renderer)
         if (p->lifeLeft > 0)
         {
             p->lifeLeft -= 1;
-            p->origin = addPoints(p->origin, p->velocity);
+            p->origin = add2Vector2(p->origin, p->velocity);
 
             uint8_t newColor[3];
-            float lifeRatio = p->lifeLeft / p->life;
-            float lifeInverse = 1 - lifeRatio;
 
-            for (int c; c < 3; c++)
-                newColor[c] = (int)(lifeRatio * p->color1[c] + lifeInverse * p->color2[c]);
+            for (int c = 0; c < 3; c++)
+                newColor[c] = (p->lifeLeft * p->color1[c] + (p->life - p->lifeLeft) * p->color2[c]) / p->life;
 
             SDL_SetRenderDrawColor(renderer, newColor[0], newColor[1], newColor[2], 0);
             SDL_RenderDrawPoint(renderer, (int)(p->origin.x), (int)(p->origin.y));
@@ -429,6 +542,24 @@ void doRender(SDL_Renderer* renderer)
     SDL_RenderPresent(renderer);
 }
 
+void initObjectMemory()
+{
+    Vector2Array = malloc(sizeof(struct Vector2) * maxVector2);
+    ParticleArray = malloc(sizeof(struct Particle) * maxParticles);
+    PolygonArray = malloc(sizeof(struct Polygon) * maxPolygons);
+    BaseObjectArray = malloc(sizeof(struct BaseObject) * maxBaseObjects);
+}
+
+void initGameObjects()
+{
+    Player = spawnShip(center, (uint8_t[]){0,255,0,0});
+
+    #define asteroidMinScale 0.5
+    #define asteroidMaxScale 1.8
+    for (int i = 0; i < 10; i++)
+        spawnAsteroid(randomVector2Box(screenWidth, screenHeight), randomFloat(asteroidMinScale, asteroidMaxScale), (uint8_t[]){255,255,255,0});
+}
+
 int main(int argc, char *argv[])
 {
     // Initialize graphics
@@ -439,22 +570,15 @@ int main(int argc, char *argv[])
     Renderer = SDL_CreateRenderer(Window, -1, SDL_RENDERER_ACCELERATED);
 
     // Initialize game objects
-    PointArray = malloc(sizeof(struct Point) * maxPoints);
-    ParticleArray = malloc(sizeof(struct Particle) * maxParticles);
-    PolygonArray = malloc(sizeof(struct Polygon) * maxPolygons);
-    BaseObjectArray = malloc(sizeof(struct BaseObject) * maxBaseObjects);
-
-    struct BaseObject* PlayerObject = spawnShip(center, (uint8_t[]){0,255,0,0});
-
-    for (int i = 0; i < 10; i++)
-        spawnAsteroid(randomPoint(), randomFloat(0.5, 1.5), (uint8_t[]){255,255,255,0});
+    initObjectMemory();
+    initGameObjects();
 
     // Game loop
     int done = 0;
     while (!done)
     {
         done = doEvents(Window);
-        doPhysics(PlayerObject);
+        doPhysics(Player);
         doRender(Renderer);
         SDL_Delay(10);
     }
