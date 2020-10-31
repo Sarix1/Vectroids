@@ -21,7 +21,7 @@ enum inputDirEnum
     MAX_DIRS
 };
 
-uint8_t inputDir[MAX_DIRS] = {0,0,0,0};
+uint8_t inputCommands[MAX_DIRS] = {0,0,0,0};
 #define turnSpeed           2.0
 #define acceleration        0.03
 #define maxVelocity         5.0
@@ -60,14 +60,15 @@ struct Vector2* makeVector2(float x, float y)
         return NULL;
     }
 }
+
 struct Vector2 add2Vector2(struct Vector2 a, struct Vector2 b)
 {
     return (struct Vector2){a.x+b.x, a.y+b.y};
 }
 
-struct Vector2 scaleVector2(struct Vector2 p, float scale)
+struct Vector2 scaleVector2(struct Vector2 v, float scale)
 {
-    return (struct Vector2){p.x*scale, p.y*scale};
+    return (struct Vector2){v.x*scale, v.y*scale};
 }
 
 struct Vector2 add3Vector2(struct Vector2 a, struct Vector2 b, struct Vector2 c)
@@ -173,22 +174,26 @@ struct Projectile
 {
     struct Vector2 origin;
     struct Vector2 velocity;
-    float delta;
+    float speed;
+    float angle;
     unsigned range;
+    unsigned delta;
     int damage;
     struct Polygon* shape;
 };
 
-struct Projectile* makeProjectile(struct Vector2 origin_, struct Vector2 velocity_, float delta_, unsigned range_, int damage_, struct Polygon* shape_)
+struct Projectile* makeProjectile(struct Vector2 origin_, float speed_, float angle_, unsigned range_, int damage_, struct Polygon* shape_)
 {
     if (projectileCount >= maxProjectiles)
         projectileCount = 0;
 
     struct Projectile* newProjectile = &(ProjectileArray[projectileCount]);
     *newProjectile = (struct Projectile){.origin    = origin_,
-                                         .velocity  = velocity_,
-                                         .delta     = delta_,
+                                         .speed     = speed_,
+                                         .angle     = angle_,
+                                         .velocity  = newVector2(speed_, angle_),
                                          .range     = range_,
+                                         .delta     = 0,
                                          .damage    = damage_,
                                          .shape     = shape_};
 
@@ -398,11 +403,11 @@ int doEvents(SDL_Window* window)
 
     // Process user input
     const Uint8* state = SDL_GetKeyboardState(NULL);
-    memset(inputDir, 0, sizeof(int) * MAX_DIRS);
-    if (state[SDL_SCANCODE_UP])     inputDir[UP] = 1;
-    if (state[SDL_SCANCODE_DOWN])   inputDir[DOWN] = 1;
-    if (state[SDL_SCANCODE_LEFT])   inputDir[LEFT] = 1;
-    if (state[SDL_SCANCODE_RIGHT])  inputDir[RIGHT] = 1;
+    memset(inputCommands, 0, sizeof(int) * MAX_DIRS);
+    if (state[SDL_SCANCODE_UP])     inputCommands[UP] = 1;
+    if (state[SDL_SCANCODE_DOWN])   inputCommands[DOWN] = 1;
+    if (state[SDL_SCANCODE_LEFT])   inputCommands[LEFT] = 1;
+    if (state[SDL_SCANCODE_RIGHT])  inputCommands[RIGHT] = 1;
 
     return done;
 }
@@ -411,19 +416,19 @@ void spawnFlame(struct Vector2 origin, struct Vector2 moveVector, float scale, f
 {
     moveVector = scaleVector2(moveVector, scale);
     struct Vector2 particleVelocity = add2Vector2(moveVector, randomVector2(0, random));
-    #define RGB_RED     (uint8_t[]){255,0,0,0}
-    #define RGB_YELLOW  (uint8_t[]){255,255,0,0}
-    makeParticle(origin, particleVelocity, RGB_YELLOW, RGB_RED, life);
+    #define RGBA_RED     (uint8_t[]){255,0,0,0}
+    #define RGBA_YELLOW  (uint8_t[]){255,255,0,0}
+    makeParticle(origin, particleVelocity, RGBA_YELLOW, RGBA_RED, life);
 }
 
 void spawnExplosion(struct Vector2 origin, struct Vector2 moveVector, unsigned magnitude)
 {
     struct Vector2 particleVelocity;
 
-    for (int i; i < magnitude; i++)
+    for (int i = 0; i < magnitude; i++)
     {
-        particleVelocity = add2Vector2(moveVector, randomVector2(magnitude/100.0, magnitude/50.0));
-        makeParticle(origin, particleVelocity, RGB_YELLOW, RGB_RED, rand() % magnitude);
+        particleVelocity = add2Vector2(moveVector, randomVector2(magnitude/100.0, 0));
+        makeParticle(origin, particleVelocity, RGBA_YELLOW, RGBA_RED, rand() % magnitude);
     }
 }
 
@@ -437,17 +442,20 @@ float getVector2Length(struct Vector2 v)
     return sqrt(pow(v.x, 2) + pow(v.y, 2));
 }
 
-void doPhysics(struct BaseObject* player_)
+void calcPlayerPhysics(struct BaseObject* player_)
 {
-    // Only player
-    if (inputDir[UP])
+    if (inputCommands[UP])
         changeVelocity(&(player_->velocity), player_->moveVector);
-    if (inputDir[DOWN])
-        spawnExplosion(player_->origin, scaleVector2(player_->velocity, 0.5), 50);
-    if (inputDir[LEFT])
+
+    // if (inputCommands[DOWN])
+        // Nothing
+
+    if (inputCommands[LEFT])
         player_->angle -= turnSpeed;
-    if (inputDir[RIGHT])
+
+    if (inputCommands[RIGHT])
         player_->angle += turnSpeed;
+
     player_->moveVector = moveVector2(zero, player_->angle, acceleration);
 
     // Limit player velocity to max
@@ -455,20 +463,19 @@ void doPhysics(struct BaseObject* player_)
     if (excessVelocitySquared > 0)
     {
         float excessVelocity = sqrt(excessVelocitySquared);
-        printf("excessVelocity: %f\n", excessVelocity);
-
         struct Vector2 cancelVector = newVector2(-excessVelocity, getVector2Angle(player_->velocity));
         player_->velocity = add2Vector2(player_->velocity, cancelVector);
     }
+}
 
-    // All objects
-    for (int i = 0; i < maxBaseObjects; i++)
+void calcBaseObjectPhysics()
+{
+    for (int i = 0; i < baseObjectCount; i++)
     {
         struct BaseObject* object = &(BaseObjectArray[i]);
 
-        object->origin.x += object->velocity.x;
-        object->origin.y += object->velocity.y;
-        object->angle    += object->angVelocity;
+        object->origin = add2Vector2(object->origin, object->velocity);
+        object->angle += object->angVelocity;
 
         if (object->origin.x < 0)                   object->origin.x = screenWidth;
         else if (object->origin.x >= screenWidth)   object->origin.x = 0;
@@ -481,14 +488,30 @@ void doPhysics(struct BaseObject* player_)
     }
 }
 
-void doRender(SDL_Renderer* renderer)
+void calcProjectilePhysics()
 {
-    int i;
+    for (int i = 0; i < projectileCount; i++)
+    {
+        struct Projectile* e = &(ProjectileArray[i]);
 
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    SDL_RenderClear(renderer);
+        if (e->delta < e->range)
+        {
+            e->origin = add2Vector2(e->origin, e->velocity);
+            e->delta += e->speed;
+        }
+    }
+}
 
-    if (inputDir[UP])
+void doPhysics(struct BaseObject* player_)
+{
+    calcPlayerPhysics(player_);
+    calcBaseObjectPhysics();
+    calcProjectilePhysics();
+}
+
+void generateExhaust()
+{
+    if (inputCommands[UP])
     {
         #define exhaustVelocity             100
         #define exhaustVelocityModifier     5
@@ -498,22 +521,25 @@ void doRender(SDL_Renderer* renderer)
         #define exhaustLongitudinal        -10
         #define exhaustLateral              4
 
-        if (!inputDir[RIGHT] || (inputDir[LEFT] && inputDir[RIGHT]))
+        if (!inputCommands[RIGHT] || (inputCommands[LEFT] && inputCommands[RIGHT]))
         {
             spawnFlame(add2Vector2(Player->origin, rotateVector2(&(struct Vector2){exhaustLongitudinal, exhaustLateral}, Player->angle)),
                        add2Vector2(scaleVector2(Player->moveVector, -exhaustVelocity/exhaustVelocityModifier), scaleVector2(Player->velocity, exhaustInheritedVelocity)),
                        1, exhaustDiffusion, exhaustLife);
         }
 
-        if (!inputDir[LEFT] || (inputDir[LEFT] && inputDir[RIGHT]))
+        if (!inputCommands[LEFT] || (inputCommands[LEFT] && inputCommands[RIGHT]))
         {
             spawnFlame(add2Vector2(Player->origin, rotateVector2(&(struct Vector2){exhaustLongitudinal, -exhaustLateral}, Player->angle)),
                        add2Vector2(scaleVector2(Player->moveVector, -exhaustVelocity/exhaustVelocityModifier), scaleVector2(Player->velocity, exhaustInheritedVelocity)),
                        1, exhaustDiffusion, exhaustLife);
         }
     }
+}
 
-    for (i = 0; i < maxParticles; i++)
+void renderParticles(SDL_Renderer* renderer)
+{
+    for (int i = 0; i < maxParticles; i++)
     {
         struct Particle* p = &(ParticleArray[i]);
 
@@ -530,23 +556,36 @@ void doRender(SDL_Renderer* renderer)
             SDL_SetRenderDrawColor(renderer, newColor[0], newColor[1], newColor[2], 0);
             SDL_RenderDrawPoint(renderer, (int)(p->origin.x), (int)(p->origin.y));
         }
-
     }
+}
 
-    for (i = 0; i < polygonCount; i++)
+void renderPolygons(SDL_Renderer* renderer)
+{
+    for (int i = 0; i < polygonCount; i++)
     {
         PolygonArray[i].angle += PolygonArray[i].angVelocity;
         drawPolygon(&(PolygonArray[i]), renderer);
     }
+}
+
+void doRender(SDL_Renderer* renderer)
+{
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_RenderClear(renderer);
+
+    generateExhaust();
+
+    renderParticles(renderer);
+    renderPolygons(renderer);
 
     SDL_RenderPresent(renderer);
 }
 
 void initObjectMemory()
 {
-    Vector2Array = malloc(sizeof(struct Vector2) * maxVector2);
-    ParticleArray = malloc(sizeof(struct Particle) * maxParticles);
-    PolygonArray = malloc(sizeof(struct Polygon) * maxPolygons);
+    Vector2Array    = malloc(sizeof(struct Vector2) * maxVector2);
+    ParticleArray   = malloc(sizeof(struct Particle) * maxParticles);
+    PolygonArray    = malloc(sizeof(struct Polygon) * maxPolygons);
     BaseObjectArray = malloc(sizeof(struct BaseObject) * maxBaseObjects);
 }
 
