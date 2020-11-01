@@ -1,41 +1,14 @@
 #include "render.h"
 
+SDL_Window* Window;
+SDL_Renderer* Renderer;
+SDL_Renderer* drawTarget;
+
 void initRender()
 {
     SDL_Init(SDL_INIT_VIDEO);
     Window = SDL_CreateWindow("Vectroids", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, screenWidth, screenHeight, 0);
     Renderer = SDL_CreateRenderer(Window, -1, SDL_RENDERER_ACCELERATED);
-}
-
-void drawPolygon(struct Polygon* polygon, SDL_Renderer* renderer)
-{
-    int i;
-    struct Vector2* rotatedVectors = malloc(sizeof(struct Vector2) * polygon->numPoints);
-
-    for (i = 0; i < polygon->numPoints; i++)
-        rotatedVectors[i] = rotateVector2(polygon->points[i], polygon->angle + *(polygon->parentAngle));
-
-    SDL_SetRenderDrawColor(renderer, polygon->color[0], polygon->color[1], polygon->color[2], polygon->color[3]);
-
-    for (i = 0; i < polygon->numPoints-1; i++)
-    {
-        SDL_RenderDrawLine(renderer,
-            (polygon->parentOrigin->x + polygon->origin.x + rotatedVectors[i].x),
-            (polygon->parentOrigin->y + polygon->origin.y + rotatedVectors[i].y),
-            (polygon->parentOrigin->x + polygon->origin.x + rotatedVectors[i+1].x),
-            (polygon->parentOrigin->y + polygon->origin.y + rotatedVectors[i+1].y) );
-    }
-
-    if (polygon->numPoints > 2)
-    {
-        SDL_RenderDrawLine(renderer,
-            (polygon->parentOrigin->x + polygon->origin.x + rotatedVectors[i].x),
-            (polygon->parentOrigin->y + polygon->origin.y + rotatedVectors[i].y),
-            (polygon->parentOrigin->x + polygon->origin.x + rotatedVectors[0].x),
-            (polygon->parentOrigin->y + polygon->origin.y + rotatedVectors[0].y) );
-    }
-
-    free(rotatedVectors);
 }
 
 void renderParticles(SDL_Renderer* renderer)
@@ -58,6 +31,37 @@ void renderParticles(SDL_Renderer* renderer)
     }
 }
 
+void drawPolygon(struct Polygon* polygon, SDL_Renderer* renderer)
+{
+    int i;
+    struct Vector2* rotatedVectors = malloc(sizeof(struct Vector2) * polygon->numVectors);
+
+    for (i = 0; i < polygon->numVectors; i++)
+        rotatedVectors[i] = rotateVector2(polygon->vectors[i], polygon->angle + *(polygon->parentAngle));
+
+    SDL_SetRenderDrawColor(renderer, polygon->color[0], polygon->color[1], polygon->color[2], polygon->color[3]);
+
+    for (i = 0; i < polygon->numVectors-1; i++)
+    {
+        SDL_RenderDrawLine(renderer,
+            (polygon->parentOrigin->x + polygon->origin.x + rotatedVectors[i].x),
+            (polygon->parentOrigin->y + polygon->origin.y + rotatedVectors[i].y),
+            (polygon->parentOrigin->x + polygon->origin.x + rotatedVectors[i+1].x),
+            (polygon->parentOrigin->y + polygon->origin.y + rotatedVectors[i+1].y) );
+    }
+
+    if (polygon->numVectors > 2)
+    {
+        SDL_RenderDrawLine(renderer,
+            (polygon->parentOrigin->x + polygon->origin.x + rotatedVectors[i].x),
+            (polygon->parentOrigin->y + polygon->origin.y + rotatedVectors[i].y),
+            (polygon->parentOrigin->x + polygon->origin.x + rotatedVectors[0].x),
+            (polygon->parentOrigin->y + polygon->origin.y + rotatedVectors[0].y) );
+    }
+
+    free(rotatedVectors);
+}
+
 void renderPolygons(SDL_Renderer* renderer)
 {
     for (int i = 0; i < polygonCount; i++)
@@ -73,7 +77,6 @@ void doRender(SDL_Renderer* renderer)
     SDL_RenderClear(renderer);
 
     generateExhaust();
-
     renderParticles(renderer);
     renderPolygons(renderer);
 

@@ -1,14 +1,18 @@
 #include "event.h"
 
+#include <string.h>
+
+SDL_Event Event;
+uint8_t inputCommands[NUM_COMMANDS] = {0,0,0,0};
+
 int doEvents(SDL_Window* window)
 {
-    SDL_Event event;
     int running = 1;
 
-    // Check for events
-    while (SDL_PollEvent(&event))
+    // Check for Events
+    while (SDL_PollEvent(&Event))
     {
-        switch(event.type)
+        switch(Event.type)
         {
             case SDL_WINDOWEVENT_CLOSE:
             {
@@ -23,7 +27,7 @@ int doEvents(SDL_Window* window)
 
             case SDL_KEYDOWN:
             {
-                switch(event.key.keysym.sym)
+                switch(Event.key.keysym.sym)
                 {
                     case SDLK_ESCAPE:
                         running = 0;

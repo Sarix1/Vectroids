@@ -1,7 +1,7 @@
 #ifndef PROJECTILE_H
 #define PROJECTILE_H
 
-#include "vector.h"
+#include "vector2.h"
 #include "polygon.h"
 
 #define maxProjectiles 1000
@@ -18,8 +18,8 @@ struct Projectile
     struct Polygon* shape;
 };
 
-int projectileCount = 0;
-struct Projectile* ProjectileArray;
+extern int projectileCount;
+extern struct Projectile* ProjectileArray;
 
 struct Projectile* makeProjectile(struct Vector2 origin_, float speed_, float angle_, unsigned range_, int damage_, struct Polygon* shape_);
 

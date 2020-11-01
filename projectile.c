@@ -1,5 +1,8 @@
 #include "projectile.h"
 
+int projectileCount = 0;
+struct Projectile* ProjectileArray;
+
 struct Projectile* makeProjectile(struct Vector2 origin_, float speed_, float angle_, unsigned range_, int damage_, struct Polygon* shape_)
 {
     if (projectileCount >= maxProjectiles)

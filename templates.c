@@ -1,5 +1,12 @@
 #include "templates.h"
 
+#include <stdlib.h>
+#include "globals.h"
+#include "my_math.h"
+#include "particle.h"
+#include "polygon.h"
+#include "projectile.h"
+
 void initObjectMemory()
 {
     Vector2Array    = malloc(sizeof(struct Vector2) * maxVector2);
@@ -7,6 +14,14 @@ void initObjectMemory()
     PolygonArray    = malloc(sizeof(struct Polygon) * maxPolygons);
     ProjectileArray = malloc(sizeof(struct Projectile) * maxProjectiles);
     BaseObjectArray = malloc(sizeof(struct BaseObject) * maxBaseObjects);
+}
+
+void initGameObjects()
+{
+    Player = spawnShip(center, RGBA_GREEN);
+
+    for (int i = 0; i < 10; i++)
+        spawnAsteroid(randomVector2Box(screenWidth, screenHeight), randomFloat(asteroidMinScale, asteroidMaxScale), RGBA_RED);
 }
 
 struct BaseObject* spawnShip(struct Vector2 location, uint8_t color[])
@@ -38,12 +53,4 @@ struct BaseObject* spawnAsteroid(struct Vector2 location, float scale, uint8_t c
     asteroidPolygon->parentAngle        = &(asteroidObject->angle);
 
     return asteroidObject;
-}
-
-void initGameObjects()
-{
-    Player = spawnShip(center, RGBA_GREEN);
-
-    for (int i = 0; i < 10; i++)
-        spawnAsteroid(randomVector2Box(screenWidth, screenHeight), randomFloat(asteroidMinScale, asteroidMaxScale), RGBA_RED);
 }

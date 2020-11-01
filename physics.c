@@ -1,5 +1,13 @@
 #include "physics.h"
 
+#include "globals.h"
+#include "event.h"
+#include "my_math.h"
+#include "vector2.h"
+#include "particle.h"
+#include "projectile.h"
+#include "baseobject.h"
+
 void calcPlayerPhysics()
 {
     if (inputCommands[UP])

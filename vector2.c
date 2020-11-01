@@ -1,4 +1,15 @@
-#include "vector.h"
+#include "vector2.h"
+
+#include <stdio.h>
+#include <string.h>
+#include "globals.h"
+#include "my_math.h"
+
+int vector2Count = 0;
+struct Vector2* Vector2Array;
+const struct Vector2 zero = {0,0};
+const struct Vector2 world = zero;
+const struct Vector2 center = {screenWidth/2, screenHeight/2};
 
 struct Vector2* makeVector2(float x, float y)
 {

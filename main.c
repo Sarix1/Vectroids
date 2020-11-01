@@ -1,19 +1,20 @@
-#include "SDL2/SDL.h"
+#include <SDL2/SDL.h>
+#include "templates.h"
+#include "event.h"
 #include "physics.h"
 #include "render.h"
-#include "templates.h"
 
 int main(int argc, char *argv[])
 {
-    initRender();
     initObjectMemory();
     initGameObjects();
+    initRender();
 
-    int running = 0;
+    int running = 1;
     while (running)
     {
         running = doEvents(Window);
-        doPhysics(Player);
+        doPhysics();
         doRender(Renderer);
         SDL_Delay(10);
     }

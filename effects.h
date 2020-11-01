@@ -1,9 +1,4 @@
-#include "SDL2/SDL_types.h"
-#include "globals.h"
-#include "vector.h"
-#include "particle.h"
-#include "baseobject.h"
-#include "event.h"
+#include "vector2.h"
 
 #define exhaustVelocity             100
 #define exhaustVelocityModifier     5

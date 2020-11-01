@@ -4,9 +4,9 @@
 #include "particle.h"
 #include "polygon.h"
 
-SDL_Window* Window;
-SDL_Renderer* Renderer;
-SDL_Renderer* drawTarget;
+extern SDL_Window* Window;
+extern SDL_Renderer* Renderer;
+extern SDL_Renderer* drawTarget;
 
 void initRender();
 void drawPolygon(struct Polygon* polygon, SDL_Renderer* renderer);

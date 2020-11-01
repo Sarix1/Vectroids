@@ -1,5 +1,10 @@
 #include "particle.h"
 
+#include <string.h>
+
+int particleCount = 0;
+struct Particle* ParticleArray;
+
 struct Particle* makeParticle(struct Vector2 origin_, struct Vector2 velocity_, uint8_t color1_[], uint8_t color2_[], unsigned life_)
 {
     if (particleCount >= maxParticles)

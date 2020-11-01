@@ -1,5 +1,11 @@
 #include "effects.h"
 
+#include <SDL2/SDL_types.h>
+#include "globals.h"
+#include "particle.h"
+#include "baseobject.h"
+#include "event.h"
+
 void spawnFlame(struct Vector2 origin, struct Vector2 moveVector, float scale, float randomness, unsigned life)
 {
     moveVector = scaleVector2(moveVector, scale);

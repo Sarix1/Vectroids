@@ -2,7 +2,7 @@
 #define PARTICLE_H
 
 #include <SDL2/SDL_types.h>
-#include "vector.h"
+#include "vector2.h"
 
 #define maxParticles 1000
 
@@ -16,8 +16,8 @@ struct Particle
     unsigned lifeLeft;
 };
 
-int particleCount = 0;
-struct Particle* ParticleArray;
+extern int particleCount;
+extern struct Particle* ParticleArray;
 
 struct Particle* makeParticle(struct Vector2 origin_, struct Vector2 velocity_, uint8_t color1_[], uint8_t color2_[], unsigned life_);
 

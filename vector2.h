@@ -1,9 +1,5 @@
-#ifndef VECTOR_H
-#define VECTOR_H
-
-#include <stdlib.h>
-#include "globals.h"
-#include "my_math.h"
+#ifndef VECTOR2_H
+#define VECTOR2_H
 
 #define maxVector2 1000
 
@@ -12,11 +8,11 @@ struct Vector2
     float x, y;
 };
 
-int vector2Count = 0;
-struct Vector2* Vector2Array;
-struct Vector2 zero = {0,0};
-struct Vector2 world = {0,0};
-struct Vector2 center = {screenWidth/2, screenHeight/2};
+extern int vector2Count;
+extern struct Vector2* Vector2Array;
+extern const struct Vector2 zero;
+extern const struct Vector2 world;
+extern const struct Vector2 center;
 
 struct Vector2* makeVector2(float x, float y);
 struct Vector2 add2Vector2(struct Vector2 a, struct Vector2 b);
