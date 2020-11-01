@@ -1,4 +1,4 @@
-#include "SDL2/SDL.h"
+#include <SDL2/SDL.h>
 #include "physics.h"
 #include "render.h"
 #include "templates.h"

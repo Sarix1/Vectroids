@@ -3,7 +3,7 @@
 
 #include <string.h>
 #include <SDL2/SDL_events.h>
-#include "SDL2/SDL_render.h"
+#include <SDL2/SDL_render.h>
 
 enum inputCommandEnum
 {
