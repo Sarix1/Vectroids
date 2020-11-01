@@ -2,5 +2,9 @@ bin
 obj
 *.dll
 *.depend
+<<<<<<< HEAD
 *.layout
 
+=======
+*.layout
+>>>>>>> db7aaaf2133cd1bb460089d477ad135c9e151480

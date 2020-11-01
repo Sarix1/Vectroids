@@ -38,20 +38,14 @@
 		</Linker>
 		<Unit filename="baseobject.c">
 			<Option compilerVar="CC" />
-			<Option compile="0" />
-			<Option link="0" />
 		</Unit>
 		<Unit filename="baseobject.h" />
 		<Unit filename="effects.c">
 			<Option compilerVar="CC" />
-			<Option compile="0" />
-			<Option link="0" />
 		</Unit>
 		<Unit filename="effects.h" />
 		<Unit filename="event.c">
 			<Option compilerVar="CC" />
-			<Option compile="0" />
-			<Option link="0" />
 		</Unit>
 		<Unit filename="event.h" />
 		<Unit filename="globals.h" />
@@ -60,20 +54,14 @@
 		</Unit>
 		<Unit filename="my_math.c">
 			<Option compilerVar="CC" />
-			<Option compile="0" />
-			<Option link="0" />
 		</Unit>
 		<Unit filename="my_math.h" />
 		<Unit filename="particle.c">
 			<Option compilerVar="CC" />
-			<Option compile="0" />
-			<Option link="0" />
 		</Unit>
 		<Unit filename="particle.h" />
 		<Unit filename="physics.c">
 			<Option compilerVar="CC" />
-			<Option compile="0" />
-			<Option link="0" />
 		</Unit>
 		<Unit filename="physics.h" />
 		<Unit filename="polygon.c">
@@ -82,8 +70,6 @@
 		<Unit filename="polygon.h" />
 		<Unit filename="projectile.c">
 			<Option compilerVar="CC" />
-			<Option compile="0" />
-			<Option link="0" />
 		</Unit>
 		<Unit filename="projectile.h" />
 		<Unit filename="render.c">
@@ -92,14 +78,10 @@
 		<Unit filename="render.h" />
 		<Unit filename="templates.c">
 			<Option compilerVar="CC" />
-			<Option compile="0" />
-			<Option link="0" />
 		</Unit>
 		<Unit filename="templates.h" />
 		<Unit filename="vector2.c">
 			<Option compilerVar="CC" />
-			<Option compile="0" />
-			<Option link="0" />
 		</Unit>
 		<Unit filename="vector2.h" />
 		<Extensions>
