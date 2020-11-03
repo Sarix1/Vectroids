@@ -1,0 +1,2 @@
+void doCollide();
+void collideBulletsWithAsteroids();

@@ -22,15 +22,25 @@ struct Vector2* makeVector2(float x, float y)
 
     else
     {
-        printf("maxVector2 exceeded");
+        printf("maxVector2 exceeded\n");
 
         return NULL;
     }
 }
 
+void killVector2(struct Vector2* target)
+{
+    *target = Vector2Array[--vector2Count];
+}
+
 struct Vector2 add2Vector2(struct Vector2 a, struct Vector2 b)
 {
     return (struct Vector2){a.x+b.x, a.y+b.y};
+}
+
+struct Vector2 subtractVector2(struct Vector2 a, struct Vector2 b)
+{
+    return (struct Vector2){a.x-b.x, a.y-b.y};
 }
 
 struct Vector2 add3Vector2(struct Vector2 a, struct Vector2 b, struct Vector2 c)
@@ -43,12 +53,12 @@ struct Vector2 scaleVector2(struct Vector2 v, float scale)
     return (struct Vector2){v.x*scale, v.y*scale};
 }
 
-struct Vector2 rotateVector2(const struct Vector2* v, float angle)
+struct Vector2 rotateVector2(const struct Vector2 v, float angle)
 {
-    struct Vector2 rotatedVector = *v;
+    struct Vector2 rotatedVector = v;
     angle = degToRad(angle);
-    rotatedVector.x = v->x*cos(angle) - v->y*sin(angle);
-    rotatedVector.y = v->x*sin(angle) + v->y*cos(angle);
+    rotatedVector.x = v.x*cos(angle) - v.y*sin(angle);
+    rotatedVector.y = v.x*sin(angle) + v.y*cos(angle);
 
     return rotatedVector;
 }
@@ -65,7 +75,7 @@ struct Vector2 moveVector2(struct Vector2 v, float angle, float magnitude)
 struct Vector2 randomVector2(float min, float max)
 {
     struct Vector2 v = {randomFloat(min, max), 0};
-    v = rotateVector2(&v, randomFloat(0, 360));
+    v = rotateVector2(v, randomFloat(0, 360));
 
     return v;
 }
@@ -81,7 +91,7 @@ struct Vector2 randomVector2Box(float x, float y)
 
 struct Vector2 newVector2(float length, float angle)
 {
-    return rotateVector2(&(struct Vector2){length, 0}, angle);
+    return rotateVector2((struct Vector2){length, 0}, angle);
 }
 
 float getVector2Angle(struct Vector2 v)
@@ -91,5 +101,12 @@ float getVector2Angle(struct Vector2 v)
 
 float getVector2Length(struct Vector2 v)
 {
+    return sqrt(pow(v.x, 2) + pow(v.y, 2));
+}
+
+float getVector2Distance(struct Vector2 v1, struct Vector2 v2)
+{
+    struct Vector2 v = subtractVector2(v1, v2);
+
     return sqrt(pow(v.x, 2) + pow(v.y, 2));
 }

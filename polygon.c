@@ -9,7 +9,6 @@ struct Polygon* makePolygon(struct Vector2 origin_, float angle_, float angVeloc
 {
     if (polygonCount < maxPolygons)
     {
-        printf("Making a polygon...\n");
         struct Polygon* newPolygon = &(PolygonArray[polygonCount]);
         *newPolygon = (struct Polygon){.origin          = origin_,
                                        .angle           = angle_,
@@ -29,9 +28,24 @@ struct Polygon* makePolygon(struct Vector2 origin_, float angle_, float angVeloc
 
     else
     {
-        printf("maxPolygons exceeded");
+        printf("maxPolygons exceeded\n");
 
         return NULL;
     }
 }
+/*
+void copyPolygon(struct Polygon* source, struct Polygon* destination)
+{
+    // caution: this can override the next polygon's vectors if source has more than destination!
+    for (int i = 0; i < source->numVectors; i++)
+        destination->vectors[i] = source->vectors[i];
 
+    *destination = *source;
+}
+
+void killPolygon(struct Polygon* target)
+{
+    //vector2Count -= target->numVectors;
+    copyPolygon(&(PolygonArray[--polygonCount]), target);
+}
+*/

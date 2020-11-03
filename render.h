@@ -2,6 +2,7 @@
 #include "globals.h"
 #include "effects.h"
 #include "particle.h"
+#include "projectile.h"
 #include "polygon.h"
 
 extern SDL_Window* Window;

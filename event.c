@@ -45,11 +45,13 @@ int doEvents(SDL_Window* window)
     }
 
     const Uint8* state = SDL_GetKeyboardState(NULL);
-    memset(inputCommands, 0, sizeof(int) * NUM_COMMANDS);
-    if (state[SDL_SCANCODE_UP])     inputCommands[UP] = 1;
-    if (state[SDL_SCANCODE_DOWN])   inputCommands[DOWN] = 1;
-    if (state[SDL_SCANCODE_LEFT])   inputCommands[LEFT] = 1;
-    if (state[SDL_SCANCODE_RIGHT])  inputCommands[RIGHT] = 1;
+    memset(inputCommands, 0, sizeof(uint8_t) * NUM_COMMANDS);
+
+    if (state[SDL_SCANCODE_UP])     inputCommands[UP]       = 1;
+    if (state[SDL_SCANCODE_DOWN])   inputCommands[DOWN]     = 1;
+    if (state[SDL_SCANCODE_LEFT])   inputCommands[LEFT]     = 1;
+    if (state[SDL_SCANCODE_RIGHT])  inputCommands[RIGHT]    = 1;
+    if (state[SDL_SCANCODE_RCTRL])  inputCommands[SHOOT]    = 1;
 
     return running;
 }

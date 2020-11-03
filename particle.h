@@ -1,10 +1,8 @@
 #ifndef PARTICLE_H
 #define PARTICLE_H
 
-#include <SDL2/SDL_types.h>
+#include "globals.h"
 #include "vector2.h"
-
-#define maxParticles 1000
 
 struct Particle
 {
@@ -16,7 +14,6 @@ struct Particle
     unsigned lifeLeft;
 };
 
-extern int particleCount;
 extern struct Particle* ParticleArray;
 
 struct Particle* makeParticle(struct Vector2 origin_, struct Vector2 velocity_, uint8_t color1_[], uint8_t color2_[], unsigned life_);

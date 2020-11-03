@@ -1,10 +1,9 @@
 #ifndef PROJECTILE_H
 #define PROJECTILE_H
 
+#include "globals.h"
 #include "vector2.h"
 #include "polygon.h"
-
-#define maxProjectiles 1000
 
 struct Projectile
 {
@@ -21,6 +20,6 @@ struct Projectile
 extern int projectileCount;
 extern struct Projectile* ProjectileArray;
 
-struct Projectile* makeProjectile(struct Vector2 origin_, float speed_, float angle_, unsigned range_, int damage_, struct Polygon* shape_);
+struct Projectile* makeProjectile(struct Vector2 origin_, struct Vector2 moveVector_, float speed_, float angle_, unsigned range_, int damage_, struct Polygon* shape_);
 
 #endif

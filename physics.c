@@ -7,6 +7,9 @@
 #include "particle.h"
 #include "projectile.h"
 #include "baseobject.h"
+#include "templates.h"
+
+int shootTimer = 0;
 
 void calcPlayerPhysics()
 {
@@ -25,7 +28,7 @@ void calcPlayerPhysics()
     Player->moveVector = moveVector2(zero, Player->angle, acceleration);
 
     // Cap velocity
-    float excessVelocitySquared = pow(Player->velocity.x, 2) + pow(Player->velocity.y, 2) - maxVelocitySquared;
+    float excessVelocitySquared = pow(Player->velocity.x, 2) + pow(Player->velocity.y, 2) - maxVelSquared;
     if (excessVelocitySquared > 0)
     {
         float excessVelocity = sqrt(excessVelocitySquared);
@@ -45,14 +48,23 @@ void calcParticlePhysics()
 
 void calcProjectilePhysics()
 {
-    for (int i = 0; i < projectileCount; i++)
-    {
-        struct Projectile* e = &(ProjectileArray[i]);
+    if (shootTimer > 0)
+        shootTimer--;
 
-        if (e->delta < e->range)
+    if (inputCommands[SHOOT] && !shootTimer)
+    {
+        shootTimer = shootDelay;
+        playerShoot();
+    }
+
+    for (int i = 0; i < maxProjectiles; i++)
+    {
+        struct Projectile* p = &(ProjectileArray[i]);
+
+        if (p->delta < p->range)
         {
-            e->origin = add2Vector2(e->origin, e->velocity);
-            e->delta += e->speed;
+            p->origin = add2Vector2(p->origin, p->velocity);
+            p->delta += p->speed;
         }
     }
 }
@@ -66,14 +78,20 @@ void calcBaseObjectPhysics()
         object->origin = add2Vector2(object->origin, object->velocity);
         object->angle += object->angVelocity;
 
-        if (object->origin.x < 0)                   object->origin.x = screenWidth;
-        else if (object->origin.x >= screenWidth)   object->origin.x = 0;
+        if (object->origin.x < -object->radius)
+            object->origin.x = screenWidth + object->radius;
+        else if (object->origin.x >= (screenWidth + object->radius))
+            object->origin.x = -object->radius;
 
-        if (object->origin.y < 0)                   object->origin.y = screenHeight;
-        else if (object->origin.y >= screenHeight)  object->origin.y = 0;
+        if (object->origin.y < -object->radius)
+            object->origin.y = screenHeight + object->radius;
+        else if (object->origin.y >= (screenHeight + object->radius))
+            object->origin.y = -object->radius;
 
-        if (object->angle < 0)                      object->angle += 360;
-        else if (object->angle >= 360)              object->angle -= 360;
+        if (object->angle < 0)
+            object->angle += 360;
+        else if (object->angle >= 360)
+            object->angle -= 360;
     }
 }
 

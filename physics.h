@@ -1,7 +1,4 @@
-#define turnSpeed           2.0
-#define acceleration        0.03
-#define maxVelocity         5.0
-#define maxVelocitySquared  maxVelocity * maxVelocity
+#include "globals.h"
 
 void calcPlayerPhysics();
 void calcParticlePhysics();

@@ -7,7 +7,7 @@ struct BaseObject* BaseObjectArray;
 struct BaseObject* Player;
 
 struct BaseObject* makeBaseObject(struct Vector2 origin_, struct Vector2 velocity_,
-                                  float angle_, float angVelocity_, struct Polygon* shape_)
+                                  float angle_, float angVelocity_, float radius_, struct Polygon* shape_)
 {
     if (baseObjectCount < maxBaseObjects)
     {
@@ -16,6 +16,7 @@ struct BaseObject* makeBaseObject(struct Vector2 origin_, struct Vector2 velocit
                                              .velocity      = velocity_,
                                              .angle         = angle_,
                                              .angVelocity   = angVelocity_,
+                                             .radius        = radius_,
                                              .shape         = shape_};
 
         return &(BaseObjectArray[baseObjectCount++]);
@@ -23,8 +24,21 @@ struct BaseObject* makeBaseObject(struct Vector2 origin_, struct Vector2 velocit
 
     else
     {
-        printf("maxBaseObjects exceeded");
+        printf("maxBaseObjects exceeded\n");
 
         return NULL;
     }
 }
+
+/*
+void copyBaseObject(struct BaseObject* source, struct BaseObject* destination)
+{
+    copyPolygon(source->shape, destination->shape);
+    *destination = *source;
+}
+
+void killBaseObject(struct BaseObject* target)
+{
+    copyBaseObject(&(BaseObjectArray[--baseObjectCount]), target);
+}
+*/

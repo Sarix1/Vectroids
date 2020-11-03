@@ -2,6 +2,7 @@
 #include "templates.h"
 #include "event.h"
 #include "physics.h"
+#include "collision.h"
 #include "render.h"
 
 int main(int argc, char *argv[])
@@ -15,6 +16,7 @@ int main(int argc, char *argv[])
     {
         running = doEvents(Window);
         doPhysics();
+        doCollide();
         doRender(Renderer);
         SDL_Delay(10);
     }

@@ -4,10 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <SDL2/SDL_types.h>
+#include "globals.h"
 #include "vector2.h"
-
-#define maxPolygons 100
 
 struct Polygon
 {
@@ -30,5 +28,7 @@ extern struct Polygon* PolygonArray;
 struct Polygon* makePolygon(struct Vector2 origin_, float angle_, float angVelocity_,
                             struct Vector2* parentOrigin_, float* parentAngle_,
                             unsigned numVectors_, struct Vector2* vectors_, uint8_t color_[]);
+// void copyPolygon(struct Polygon* source, struct Polygon* destination);
+// void killPolygon(struct Polygon* target);
 
 #endif

@@ -11,6 +11,7 @@ enum inputCommandEnum
     DOWN,
     LEFT,
     RIGHT,
+    SHOOT,
     NUM_COMMANDS
 };
 
