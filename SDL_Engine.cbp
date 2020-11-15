@@ -33,13 +33,20 @@
 			<Add directory="C:/Dev/SDL2/include/" />
 		</Compiler>
 		<Linker>
-			<Add option="-lmingw32 -lSDL2main -lSDL2" />
+			<Add option="-lmingw32 -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer" />
 			<Add directory="C:/Dev/SDL2/lib" />
 		</Linker>
+		<Unit filename="audio.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="baseobject.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="baseobject.h" />
+		<Unit filename="collision.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="collision.h" />
 		<Unit filename="effects.c">
 			<Option compilerVar="CC" />
 		</Unit>

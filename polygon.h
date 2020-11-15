@@ -9,26 +9,21 @@
 
 struct Polygon
 {
-    struct Vector2 origin;
+    struct Vec2 origin;
     float angle;
     float angVelocity;
-
-    struct Vector2* parentOrigin;
-    float* parentAngle;
-
-    unsigned numVectors;
-    struct Vector2** vectors;
-
+    int numVectors;
+    int vectors;
+    int parent;
     uint8_t color[4];
 };
 
-extern int polygonCount;
+extern int numPolygons;
 extern struct Polygon* PolygonArray;
 
-struct Polygon* makePolygon(struct Vector2 origin_, float angle_, float angVelocity_,
-                            struct Vector2* parentOrigin_, float* parentAngle_,
-                            unsigned numVectors_, struct Vector2* vectors_, uint8_t color_[]);
-// void copyPolygon(struct Polygon* source, struct Polygon* destination);
-// void killPolygon(struct Polygon* target);
+int initPolygonArray();
+int makePolygon(struct Vec2 origin_, float angle_, float angVelocity_,
+                int numVectors_, int vectors_, int parent, uint8_t color_[]);
+void printPolygon(int index);
 
 #endif

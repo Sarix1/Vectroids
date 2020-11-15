@@ -6,20 +6,21 @@
 #include "templates.h"
 #include "effects.h"
 
-void collideBulletsWithAsteroids()
+void collideProjectilesWithAsteroids()
 {
-    for (int i = 1; i < baseObjectCount; i++)
+    for (int i = asteroidObjects; i < asteroidObjects + numAsteroids; i++)
     {
-        for (int j = 0; j < maxProjectiles; j++)
+        for (int j = 0; j < numProjectiles; j++)
         {
-            float distance = getVector2Distance(BaseObjectArray[i].origin, ProjectileArray[j].origin);
+            float distance = getVec2Distance(BaseObjectArray[i].origin, ProjectileArray[j].origin);
             float minDistance = BaseObjectArray[i].radius;
-            int bulletAlive = (ProjectileArray[j].delta < ProjectileArray[j].range) ? 1 : 0;
 
-            if (distance < minDistance && bulletAlive)
+            if (distance < minDistance)
             {
-                ProjectileArray[j].delta = ProjectileArray[j].range; // should be killProjectile(j);
-                destroyAsteroid(&(BaseObjectArray[i]));
+                killProjectile(j);
+                hitAsteroid(i, ProjectileArray[j].damage);
+
+                continue;
             }
         }
     }
@@ -27,5 +28,5 @@ void collideBulletsWithAsteroids()
 
 void doCollide()
 {
-    collideBulletsWithAsteroids();
+    collideProjectilesWithAsteroids();
 }

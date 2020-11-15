@@ -3,31 +3,32 @@
 
 #include "globals.h"
 
-struct Vector2
+struct Vec2
 {
     float x, y;
 };
 
-extern int vector2Count;
-extern struct Vector2* Vector2Array;
-extern const struct Vector2 zero;
-extern const struct Vector2 world;
-extern const struct Vector2 center;
+extern int numVec2;
+extern struct Vec2* Vec2Array;
+extern const struct Vec2 zero;
+extern const struct Vec2 world;
+extern const struct Vec2 center;
 
-struct Vector2* makeVector2(float x, float y);
-// void killVector2(struct Vector2* target);
-struct Vector2 add2Vector2(struct Vector2 a, struct Vector2 b);
-struct Vector2 add3Vector2(struct Vector2 a, struct Vector2 b, struct Vector2 c);
-struct Vector2 subtractVector2(struct Vector2 v1, struct Vector2 v2);
-struct Vector2 scaleVector2(struct Vector2 v, float scale);
-struct Vector2 rotateVector2(const struct Vector2 v, float angle);
-struct Vector2 moveVector2(struct Vector2 v, float angle, float magnitude);
-struct Vector2 randomVector2(float min, float max);
-struct Vector2 randomVector2Box(float x, float y);
-struct Vector2 newVector2(float length, float angle);
-float getVector2Angle(struct Vector2 v);
-float getVector2Length(struct Vector2 v);
-float getVector2Distance(struct Vector2 v1, struct Vector2 v2);
-
+int initVec2Array();
+struct Vec2* makeVec2(float x, float y);
+void copyVec2(int source, int destination, int count);
+void killVec2(int index, int killCount);
+struct Vec2 add2Vec2(struct Vec2 a, struct Vec2 b);
+struct Vec2 add3Vec2(struct Vec2 a, struct Vec2 b, struct Vec2 c);
+struct Vec2 subtractVec2(struct Vec2 v1, struct Vec2 v2);
+struct Vec2 scaleVec2(struct Vec2 v, float scale);
+struct Vec2 rotateVec2(const struct Vec2 v, float angle);
+struct Vec2 moveVec2(struct Vec2 v, float angle, float magnitude);
+struct Vec2 randomVec2(float min, float max);
+struct Vec2 randomVec2Box(float x, float y);
+struct Vec2 newVec2(float length, float angle);
+float getVec2Angle(struct Vec2 v);
+float getVec2Length(struct Vec2 v);
+float getVec2Distance(struct Vec2 v1, struct Vec2 v2);
 
 #endif

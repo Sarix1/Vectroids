@@ -14,7 +14,7 @@ int shootTimer = 0;
 void calcPlayerPhysics()
 {
     if (inputCommands[UP])
-        Player->velocity = add2Vector2(Player->velocity, Player->moveVector);
+        Player->velocity = add2Vec2(Player->velocity, Player->moveVector);
 
     // if (inputCommands[DOWN])
         // Nothing
@@ -25,24 +25,15 @@ void calcPlayerPhysics()
     if (inputCommands[RIGHT])
         Player->angle += turnSpeed;
 
-    Player->moveVector = moveVector2(zero, Player->angle, acceleration);
+    Player->moveVector = moveVec2(zero, Player->angle, acceleration);
 
     // Cap velocity
     float excessVelocitySquared = pow(Player->velocity.x, 2) + pow(Player->velocity.y, 2) - maxVelSquared;
     if (excessVelocitySquared > 0)
     {
         float excessVelocity = sqrt(excessVelocitySquared);
-        struct Vector2 cancelVector = newVector2(-excessVelocity, getVector2Angle(Player->velocity));
-        Player->velocity = add2Vector2(Player->velocity, cancelVector);
-    }
-}
-
-void calcParticlePhysics()
-{
-    for (int i = 0; i < maxParticles; i++)
-    {
-        struct Particle* p = &(ParticleArray[i]);
-        p->origin = add2Vector2(p->origin, p->velocity);
+        struct Vec2 cancelVector = newVec2(-excessVelocity, getVec2Angle(Player->velocity));
+        Player->velocity = add2Vec2(Player->velocity, cancelVector);
     }
 }
 
@@ -63,19 +54,21 @@ void calcProjectilePhysics()
 
         if (p->delta < p->range)
         {
-            p->origin = add2Vector2(p->origin, p->velocity);
+            p->origin = add2Vec2(p->origin, p->velocity);
             p->delta += p->speed;
         }
+        else
+            killProjectile(i);
     }
 }
 
 void calcBaseObjectPhysics()
 {
-    for (int i = 0; i < baseObjectCount; i++)
+    for (int i = 0; i < numBaseObjects; i++)
     {
         struct BaseObject* object = &(BaseObjectArray[i]);
 
-        object->origin = add2Vector2(object->origin, object->velocity);
+        object->origin = add2Vec2(object->origin, object->velocity);
         object->angle += object->angVelocity;
 
         if (object->origin.x < -object->radius)
@@ -100,5 +93,4 @@ void doPhysics()
     calcPlayerPhysics(Player);
     calcBaseObjectPhysics();
     calcProjectilePhysics();
-    calcParticlePhysics();
 }

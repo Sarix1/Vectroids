@@ -2,22 +2,52 @@
 
 #include <string.h>
 
-int particleCount = 0;
+int numParticles;
 struct Particle* ParticleArray;
 
-struct Particle* makeParticle(struct Vector2 origin_, struct Vector2 velocity_, uint8_t color1_[], uint8_t color2_[], unsigned life_)
+int initParticleArray()
 {
-    if (particleCount >= maxParticles)
-        particleCount = 0;
+    numParticles = 0;
+    ParticleArray = calloc(maxParticles, sizeof(struct Particle));
 
-    struct Particle* newParticle = &(ParticleArray[particleCount]);
-    *newParticle = (struct Particle){.origin    = origin_,
-                                     .velocity  = velocity_,
-                                     .life      = life_,
-                                     .lifeLeft  = life_};
+    if (ParticleArray == NULL)
+    {
+        printf("calloc() failed for ParticleArray\n");
+        return 1;
+    }
 
-    memcpy(newParticle->color1, color1_, 4 * sizeof(uint8_t));
-    memcpy(newParticle->color2, color2_, 4 * sizeof(uint8_t));
+    return 0;
+}
 
-    return &(ParticleArray[particleCount++]);
+int makeParticle(struct Vec2 origin_, struct Vec2 velocity_, struct Vec2 velChange_, uint8_t color1_[], uint8_t color2_[], int lifeTime_)
+{
+    int i;
+
+    if (numParticles >= maxParticles)
+        i = 0;
+    else
+        i = numParticles++;
+
+    ParticleArray[i] = (struct Particle)
+    {
+        .origin    = origin_,
+        .velocity  = velocity_,
+        .velChange = velChange_,
+        .lifeTime  = lifeTime_,
+        .lifeLeft  = lifeTime_
+    };
+
+    memcpy(ParticleArray[i].color1, color1_, 4);
+    memcpy(ParticleArray[i].color2, color2_, 4);
+
+    return i;
+}
+
+void killParticle(int index)
+{
+    if (index < numParticles)
+    {
+        ParticleArray[index] = ParticleArray[numParticles-1];
+        numParticles--;
+    }
 }

@@ -7,19 +7,22 @@
 
 struct Projectile
 {
-    struct Vector2 origin;
-    struct Vector2 velocity;
+    struct Vec2 origin;
+    struct Vec2 velocity;
     float speed;
     float angle;
-    unsigned range;
-    unsigned delta;
+    int range;
+    int delta;
     int damage;
-    struct Polygon* shape;
+    int shape; // not implemented yet
 };
 
-extern int projectileCount;
+extern int numProjectiles;
 extern struct Projectile* ProjectileArray;
 
-struct Projectile* makeProjectile(struct Vector2 origin_, struct Vector2 moveVector_, float speed_, float angle_, unsigned range_, int damage_, struct Polygon* shape_);
+int initProjectileArray();
+int makeProjectile(struct Vec2 origin_, struct Vec2 moveVector_, float speed_, float angle_, int range_, int damage_, int shape_);
+void killProjectile(int index);
+int projectileAlive(int index);
 
 #endif

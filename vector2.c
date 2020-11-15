@@ -5,57 +5,76 @@
 #include "globals.h"
 #include "my_math.h"
 
-int vector2Count = 0;
-struct Vector2* Vector2Array;
-const struct Vector2 zero = {0,0};
-const struct Vector2 world = zero;
-const struct Vector2 center = {screenWidth/2, screenHeight/2};
+int numVec2;
+struct Vec2* Vec2Array;
+const struct Vec2 zero = {0,0};
+const struct Vec2 world = zero;
+const struct Vec2 center = {screenWidth/2, screenHeight/2};
 
-struct Vector2* makeVector2(float x, float y)
+int initVec2Array()
 {
-    if (vector2Count < maxVector2)
-    {
-        Vector2Array[vector2Count] = (struct Vector2){.x = x, .y = y};
+    numVec2 = 0;
+    Vec2Array = calloc(maxVec2, sizeof(struct Vec2));
 
-        return &(Vector2Array[vector2Count++]);
+    if (Vec2Array == NULL)
+    {
+        printf("calloc() failed for Vec2Array\n");
+
+        return 1;
     }
 
+    return 0;
+}
+
+struct Vec2* makeVec2(float x, float y)
+{
+    if (numVec2 < maxVec2)
+    {
+        Vec2Array[numVec2] = (struct Vec2){.x = x, .y = y};
+        return &(Vec2Array[numVec2++]);
+    }
     else
     {
-        printf("maxVector2 exceeded\n");
-
+        printf("maxVec2 exceeded\n");
         return NULL;
     }
 }
 
-void killVector2(struct Vector2* target)
+void copyVec2(int source, int destination, int count)
 {
-    *target = Vector2Array[--vector2Count];
+    for (int i = 0; i < count; i++)
+        Vec2Array[destination+i] = Vec2Array[source+i];
 }
 
-struct Vector2 add2Vector2(struct Vector2 a, struct Vector2 b)
+void killVec2(int index, int killCount)
 {
-    return (struct Vector2){a.x+b.x, a.y+b.y};
+    copyVec2(numVec2-killCount, index, killCount);
+    numVec2 -= killCount;
 }
 
-struct Vector2 subtractVector2(struct Vector2 a, struct Vector2 b)
+struct Vec2 add2Vec2(struct Vec2 a, struct Vec2 b)
 {
-    return (struct Vector2){a.x-b.x, a.y-b.y};
+    return (struct Vec2){a.x+b.x, a.y+b.y};
 }
 
-struct Vector2 add3Vector2(struct Vector2 a, struct Vector2 b, struct Vector2 c)
+struct Vec2 subtractVec2(struct Vec2 a, struct Vec2 b)
 {
-    return (struct Vector2){a.x+b.x+c.x, a.y+b.y+c.y};
+    return (struct Vec2){a.x-b.x, a.y-b.y};
 }
 
-struct Vector2 scaleVector2(struct Vector2 v, float scale)
+struct Vec2 add3Vec2(struct Vec2 a, struct Vec2 b, struct Vec2 c)
 {
-    return (struct Vector2){v.x*scale, v.y*scale};
+    return (struct Vec2){a.x+b.x+c.x, a.y+b.y+c.y};
 }
 
-struct Vector2 rotateVector2(const struct Vector2 v, float angle)
+struct Vec2 scaleVec2(struct Vec2 v, float scale)
 {
-    struct Vector2 rotatedVector = v;
+    return (struct Vec2){v.x*scale, v.y*scale};
+}
+
+struct Vec2 rotateVec2(const struct Vec2 v, float angle)
+{
+    struct Vec2 rotatedVector = v;
     angle = degToRad(angle);
     rotatedVector.x = v.x*cos(angle) - v.y*sin(angle);
     rotatedVector.y = v.x*sin(angle) + v.y*cos(angle);
@@ -63,7 +82,7 @@ struct Vector2 rotateVector2(const struct Vector2 v, float angle)
     return rotatedVector;
 }
 
-struct Vector2 moveVector2(struct Vector2 v, float angle, float magnitude)
+struct Vec2 moveVec2(struct Vec2 v, float angle, float magnitude)
 {
     angle = degToRad(angle);
     v.x += magnitude*cos(angle);
@@ -72,41 +91,41 @@ struct Vector2 moveVector2(struct Vector2 v, float angle, float magnitude)
     return v;
 }
 
-struct Vector2 randomVector2(float min, float max)
+struct Vec2 randomVec2(float min, float max)
 {
-    struct Vector2 v = {randomFloat(min, max), 0};
-    v = rotateVector2(v, randomFloat(0, 360));
+    struct Vec2 v = {randomFloat(min, max), 0};
+    v = rotateVec2(v, randomFloat(0, 360));
 
     return v;
 }
 
-struct Vector2 randomVector2Box(float x, float y)
+struct Vec2 randomVec2Box(float x, float y)
 {
-    struct Vector2 v;
+    struct Vec2 v;
     v.x = randomFloat(0, x);
     v.y = randomFloat(0, y);
 
     return v;
 }
 
-struct Vector2 newVector2(float length, float angle)
+struct Vec2 newVec2(float length, float angle)
 {
-    return rotateVector2((struct Vector2){length, 0}, angle);
+    return rotateVec2((struct Vec2){length, 0}, angle);
 }
 
-float getVector2Angle(struct Vector2 v)
+float getVec2Angle(struct Vec2 v)
 {
     return radToDeg(atan2(v.y, v.x));
 }
 
-float getVector2Length(struct Vector2 v)
+float getVec2Length(struct Vec2 v)
 {
     return sqrt(pow(v.x, 2) + pow(v.y, 2));
 }
 
-float getVector2Distance(struct Vector2 v1, struct Vector2 v2)
+float getVec2Distance(struct Vec2 v1, struct Vec2 v2)
 {
-    struct Vector2 v = subtractVector2(v1, v2);
+    struct Vec2 v = subtractVec2(v1, v2);
 
     return sqrt(pow(v.x, 2) + pow(v.y, 2));
 }

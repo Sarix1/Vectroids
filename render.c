@@ -1,4 +1,5 @@
 #include "render.h"
+#include "particle.h"
 
 SDL_Window* Window;
 SDL_Renderer* Renderer;
@@ -11,52 +12,78 @@ void initRender()
     Renderer = SDL_CreateRenderer(Window, -1, SDL_RENDERER_ACCELERATED);
 }
 
+void setRenderColor(SDL_Renderer* renderer_, uint8_t RGBA[4])
+{
+    SDL_SetRenderDrawColor(renderer_, RGBA[0], RGBA[1], RGBA[2], RGBA[3]);
+}
+
 void renderParticles(SDL_Renderer* renderer)
 {
-    for (int i = 0; i < maxParticles; i++)
-    {
-        struct Particle* p = &(ParticleArray[i]);
+    uint8_t newColor[3];
+    struct Particle* p;
 
-        if (p->lifeLeft > 0)
+    for (int i = 0; i < numParticles; i++)
+    {
+        p = &(ParticleArray[i]);
+
+        if (p->lifeLeft-- > 0)
         {
-            p->lifeLeft -= 1;
-            uint8_t newColor[3];
+            p->velocity = add2Vec2(p->velocity, p->velChange);
+            p->origin = add2Vec2(p->origin, p->velocity);
 
             for (int c = 0; c < 3; c++)
-                newColor[c] = (p->lifeLeft * p->color1[c] + (p->life - p->lifeLeft) * p->color2[c]) / p->life;
+                newColor[c] = (p->lifeLeft * p->color1[c] + (p->lifeTime - p->lifeLeft) * p->color2[c]) / p->lifeTime;
 
             SDL_SetRenderDrawColor(renderer, newColor[0], newColor[1], newColor[2], 0);
             SDL_RenderDrawPoint(renderer, (int)(p->origin.x), (int)(p->origin.y));
         }
+
+        else
+        {
+            killParticle(i);
+        }
     }
 }
 
-void drawPolygon(struct Polygon* polygon, SDL_Renderer* renderer_)
+void renderProjectiles(SDL_Renderer* renderer_)
+{
+    setRenderColor(renderer_, shotColor);
+
+    for (int i = 0; i < numProjectiles; i++)
+        SDL_RenderDrawPoint(renderer_, (int)(ProjectileArray[i].origin.x), (int)(ProjectileArray[i].origin.y));
+}
+
+void renderPolygon(int index, SDL_Renderer* renderer_)
 {
     int i;
-    struct Vector2* rotatedVectors = malloc(sizeof(struct Vector2) * polygon->numVectors);
+    struct Polygon* polygon     = &(PolygonArray[index]);
+    struct BaseObject* parent   = &(BaseObjectArray[polygon->parent]); // replace with physics component later
+    struct Vec2* polygonVectors = &(Vec2Array[polygon->vectors]);
+    struct Vec2 rotatedVectors[polygon->numVectors];// = malloc(sizeof(struct Vec2) * polygon->numVectors);
+
+    polygon->angle += polygon->angVelocity;
 
     for (i = 0; i < polygon->numVectors; i++)
-        rotatedVectors[i] = rotateVector2(*(polygon->vectors[i]), polygon->angle + *(polygon->parentAngle));
+        rotatedVectors[i] = rotateVec2(polygonVectors[i], polygon->angle + parent->angle);
 
     SDL_SetRenderDrawColor(renderer_, polygon->color[0], polygon->color[1], polygon->color[2], polygon->color[3]);
 
     for (i = 0; i < polygon->numVectors-1; i++)
     {
         SDL_RenderDrawLine(renderer_,
-            (polygon->parentOrigin->x + polygon->origin.x + rotatedVectors[i].x),
-            (polygon->parentOrigin->y + polygon->origin.y + rotatedVectors[i].y),
-            (polygon->parentOrigin->x + polygon->origin.x + rotatedVectors[i+1].x),
-            (polygon->parentOrigin->y + polygon->origin.y + rotatedVectors[i+1].y) );
+            (parent->origin.x + polygon->origin.x + rotatedVectors[i].x),
+            (parent->origin.y + polygon->origin.y + rotatedVectors[i].y),
+            (parent->origin.x + polygon->origin.x + rotatedVectors[i+1].x),
+            (parent->origin.y + polygon->origin.y + rotatedVectors[i+1].y) );
     }
 
     if (polygon->numVectors > 2)
     {
         SDL_RenderDrawLine(renderer_,
-            (polygon->parentOrigin->x + polygon->origin.x + rotatedVectors[i].x),
-            (polygon->parentOrigin->y + polygon->origin.y + rotatedVectors[i].y),
-            (polygon->parentOrigin->x + polygon->origin.x + rotatedVectors[0].x),
-            (polygon->parentOrigin->y + polygon->origin.y + rotatedVectors[0].y) );
+            (parent->origin.x + polygon->origin.x + rotatedVectors[i].x),
+            (parent->origin.y + polygon->origin.y + rotatedVectors[i].y),
+            (parent->origin.x + polygon->origin.x + rotatedVectors[0].x),
+            (parent->origin.y + polygon->origin.y + rotatedVectors[0].y) );
     }
 
     free(rotatedVectors);
@@ -64,25 +91,8 @@ void drawPolygon(struct Polygon* polygon, SDL_Renderer* renderer_)
 
 void renderPolygons(SDL_Renderer* renderer_)
 {
-    for (int i = 0; i < polygonCount; i++)
-    {
-        PolygonArray[i].angle += PolygonArray[i].angVelocity;
-        drawPolygon(&(PolygonArray[i]), renderer_);
-    }
-}
-
-void renderProjectiles(SDL_Renderer* renderer_)
-{
-    for (int i = 0; i < maxProjectiles; i++)
-    {
-        struct Projectile* p = &(ProjectileArray[i]);
-
-        if (p->delta < p->range)
-        {
-            SDL_SetRenderDrawColor(renderer_, RGBA_YELLOW[0], RGBA_YELLOW[1], RGBA_YELLOW[2], 0);
-            SDL_RenderDrawPoint(renderer_, (int)(p->origin.x), (int)(p->origin.y));
-        }
-    }
+    for (int i = 0; i < numPolygons; i++)
+        renderPolygon(i, renderer_);
 }
 
 void doRender(SDL_Renderer* renderer_)
@@ -90,6 +100,7 @@ void doRender(SDL_Renderer* renderer_)
     SDL_SetRenderDrawColor(renderer_, 0, 0, 0, 0);
     SDL_RenderClear(renderer_);
 
+    generateStar();
     generateExhaust();
     renderParticles(renderer_);
     renderProjectiles(renderer_);

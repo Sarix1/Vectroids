@@ -1,51 +1,65 @@
 #include "polygon.h"
 
-int polygonCount = 0;
+int numPolygons;
 struct Polygon* PolygonArray;
 
-struct Polygon* makePolygon(struct Vector2 origin_, float angle_, float angVelocity_,
-                            struct Vector2* parentOrigin_, float* parentAngle_,
-                            unsigned numVectors_, struct Vector2* vectors_, uint8_t color_[])
+int initPolygonArray()
 {
-    if (polygonCount < maxPolygons)
+    numPolygons = 0;
+    PolygonArray = calloc(maxPolygons, sizeof(struct Polygon));
+
+    if (PolygonArray == NULL)
     {
-        struct Polygon* newPolygon = &(PolygonArray[polygonCount]);
-        *newPolygon = (struct Polygon){.origin          = origin_,
-                                       .angle           = angle_,
-                                       .angVelocity     = angVelocity_,
-                                       .parentOrigin    = parentOrigin_,
-                                       .parentAngle     = parentAngle_,
-                                       .numVectors       = numVectors_};
+        printf("calloc() failed for PolygonArray\n");
 
-        newPolygon->vectors = malloc(sizeof(struct Vector2*) * numVectors_);
-        memcpy(newPolygon->color, color_, 4 * sizeof(uint8_t));
-
-        for (int i = 0; i < numVectors_; i++)
-            newPolygon->vectors[i] = &(vectors_[i]);
-
-        return &(PolygonArray[polygonCount++]);
+        return 1;
     }
 
+    return 0;
+}
+
+int makePolygon(struct Vec2 origin_, float angle_, float angVelocity_,
+                int numVectors_, int vectors_, int parent_, uint8_t color_[])
+{
+    if (numPolygons < maxPolygons)
+    {
+        struct Polygon* newPolygon = &(PolygonArray[numPolygons++]);
+        *newPolygon = (struct Polygon)
+        {
+            .origin         = origin_,
+            .angle          = angle_,
+            .angVelocity    = angVelocity_,
+            .numVectors     = numVectors_,
+            .parent         = parent_,
+            .vectors        = vectors_
+        };
+
+        memcpy(newPolygon->color, color_, 4);
+
+        return numPolygons-1;
+    }
     else
     {
         printf("maxPolygons exceeded\n");
 
-        return NULL;
+        return -1;
     }
 }
-/*
-void copyPolygon(struct Polygon* source, struct Polygon* destination)
-{
-    // caution: this can override the next polygon's vectors if source has more than destination!
-    for (int i = 0; i < source->numVectors; i++)
-        destination->vectors[i] = source->vectors[i];
 
-    *destination = *source;
-}
-
-void killPolygon(struct Polygon* target)
+void printPolygon(int index)
 {
-    //vector2Count -= target->numVectors;
-    copyPolygon(&(PolygonArray[--polygonCount]), target);
+    struct Polygon* p = &(PolygonArray[index]);
+
+    printf("\
+Polygon: %d\n\
+Origin: %f, %f\n\
+Vectors: ",
+    index,
+    p->origin.x,
+    p->origin.y);
+
+    for (int i = 0; i < p->numVectors; i++)
+        printf("%d ", p->vectors+i);
+
+    printf("\n\Parent: %d\n\n", p->parent);
 }
-*/

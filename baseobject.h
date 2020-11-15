@@ -7,22 +7,21 @@
 
 struct BaseObject
 {
-    struct Vector2 origin;
-    struct Vector2 velocity;
-    struct Vector2 moveVector;
+    struct Vec2 origin;
+    struct Vec2 velocity;
+    struct Vec2 moveVector;
     float angle;
     float angVelocity;
     float radius;
-    struct Polygon* shape;
+    int shape;
+    int health;
 };
 
-extern int baseObjectCount;
+extern int numBaseObjects;
 extern struct BaseObject* BaseObjectArray;
-extern struct BaseObject* Player;
 
-struct BaseObject* makeBaseObject(struct Vector2 origin_, struct Vector2 velocity_,
-                                  float angle_, float angVelocity_, float radius_, struct Polygon* shape_);
-// void copyBaseObject(struct BaseObject* source, struct BaseObject* destination);
-// void killBaseObject(struct BaseObject* target);
+int initBaseObjectArray();
+int makeBaseObject(struct Vec2 origin_, struct Vec2 velocity_, float angle_, float angVelocity_, float radius_, int shape_, int health_);
+void printBaseObject(int index);
 
 #endif
